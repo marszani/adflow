@@ -54,11 +54,11 @@ contains
                 (/isTransition1,isTransition2/), &
                 1 &! dummy argument
             )
-            call unsteadyTurbTerm(&
-                (/iTransition1,iTransition2/), &
-                (/isTransition1,isTransition2/), &
-                1 &! dummy argument
-            )
+            !call unsteadyTurbTerm(&
+            !    (/iTransition1,iTransition2/), &
+            !    (/isTransition1,isTransition2/), &
+            !    1 &! dummy argument
+            !)
 
             call GammaRethetaViscous
             call GammaRethetaResScale
@@ -86,7 +86,7 @@ contains
         call SSTSource
 
         call turbAdvection((/itu1,itu2/), (/idvt,idvt+1/), 2, qq)
-        call unsteadyTurbTerm((/itu1,itu2/), (/idvt,idvt+1/), 2, qq)
+        !call unsteadyTurbTerm((/itu1,itu2/), (/idvt,idvt+1/), 2, qq)
 
         ! Viscous Terms
         call SSTViscous
@@ -276,7 +276,7 @@ contains
 
         real(kind=realType) :: Re_w, U, F_wake, delta, R_t, Re_S, F_theta_t
         real(kind=realType) :: Re_theta_c, F_reattach, gamma_sep, gamma_eff
-        real(kind=realType) :: vort
+        real(kind=realType) :: vort, gamma_new
 
         ! Set model constants
 
@@ -365,9 +365,14 @@ contains
                                 Re_theta_c = w(i, j, k, iTransition2) - (593.11 + 0.482 * (w(i, j, k, iTransition2) - 1870.0))
                             end if  
                             
+                            ! use under_relaxation factor for gamma_eff
                             F_reattach = exp(-(R_t/20.0)**4)
-                            gamma_sep = min(rLMs1 * max(0.0, (Re_S/(3.235*Re_theta_c)) - 1.0)*F_reattach, 2.0)*F_theta_t
-                            gamma_eff = max(w(i, j, k, iTransition1), gamma_sep)
+                            gamma_sep = min(rLMs1 * max(0.0, (Re_S / (3.235 * Re_theta_c)) - 1.0) * F_reattach, 2.0) * F_theta_t
+
+                            gamma_new = max(w(i, j, k, iTransition1), gamma_sep)  ! Unrelaxed value
+
+                            gamma_eff = gamma_eff + 0.01 * (gamma_new - gamma_eff)  ! Under-relaxation update
+                            
 
                             ! if gamma_eff = 1, the original SST should come out
 
