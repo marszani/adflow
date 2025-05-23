@@ -166,6 +166,7 @@ contains
 
         implicit none
 
+
         ! We need to recompute the production term because it is saved in scratch(:,:,:,iprod). This is overwritten when computing
         ! the eddyviscosity.
         select case (turbProd)
@@ -178,6 +179,7 @@ contains
         case (katoLaunder)
             call prodKatoLaunder(2, il, 2, jl, 2, kl, iprod)
         end select
+
 
         call SSTResScale_b
         call SSTViscous_b
@@ -211,6 +213,8 @@ contains
         use sst_fast_b, only: SSTSource_fast_b, SSTViscous_fast_b, SSTResScale_fast_b, f1SST_fast_b, qq
 
         implicit none
+
+        
 
         ! We need to recompute the production term because it is saved in scratch(:,:,:,iprod). This is overwritten when computing
         ! the eddyviscosity.
@@ -276,7 +280,7 @@ contains
 
         real(kind=realType) :: Re_w, U, F_wake, delta, R_t, Re_S, F_theta_t
         real(kind=realType) :: Re_theta_c, F_reattach, gamma_sep, gamma_eff
-        real(kind=realType) :: vort, gamma_new
+        real(kind=realType) :: vort
 
         ! Set model constants
 
@@ -365,19 +369,17 @@ contains
                                 Re_theta_c = w(i, j, k, iTransition2) - (593.11 + 0.482 * (w(i, j, k, iTransition2) - 1870.0))
                             end if  
                             
-                            ! use under_relaxation factor for gamma_eff
+                            
                             F_reattach = exp(-(R_t/20.0)**4)
                             gamma_sep = min(rLMs1 * max(0.0, (Re_S / (3.235 * Re_theta_c)) - 1.0) * F_reattach, 2.0) * F_theta_t
 
-                            gamma_new = max(w(i, j, k, iTransition1), gamma_sep)  ! Unrelaxed value
-
-                            gamma_eff = gamma_eff + 0.01 * (gamma_new - gamma_eff)  ! Under-relaxation update
-                            
+                            gamma_eff = max(w(i, j, k, iTransition1), gamma_sep)
 
                             ! if gamma_eff = 1, the original SST should come out
 
-                            spk = gamma_eff * spk
+                            spk = gamma_eff * spk 
                             sdk = min(max(gamma_eff, 0.1), 1.0)*sdk
+
                         end if
 
                         scratch(i, j, k, idvt) = spk - sdk

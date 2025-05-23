@@ -52,8 +52,8 @@ contains
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
     real(kind=realtype) :: re_theta_cd, f_reattachd, gamma_sepd, &
 &   gamma_effd
-    real(kind=realtype) :: vort, gamma_new
-    real(kind=realtype) :: vortd, gamma_newd
+    real(kind=realtype) :: vort
+    real(kind=realtype) :: vortd
     intrinsic sqrt
     intrinsic mod
     intrinsic min
@@ -101,7 +101,6 @@ contains
 &       rsstbetas)
       pklim = 20.0
     end if
-    gamma_effd = 0.0_8
 !$bwd-of ii-loop 
     do ii=0,nx*ny*nz-1
       i = mod(ii, nx) + 2
@@ -179,7 +178,6 @@ contains
 &           , k, itransition2)-1870.0))
           call pushcontrol1b(0)
         end if
-! use under_relaxation factor for gamma_eff
         f_reattach = exp(-((r_t/20.0)**4))
         if (0.0 .lt. re_s/(3.235*re_theta_c) - 1.0) then
           max1 = re_s/(3.235*re_theta_c) - 1.0
@@ -198,20 +196,18 @@ contains
         end if
         gamma_sep = min1*f_theta_t
         if (w(i, j, k, itransition1) .lt. gamma_sep) then
-          gamma_new = gamma_sep
+          gamma_eff = gamma_sep
           call pushcontrol1b(0)
         else
-          gamma_new = w(i, j, k, itransition1)
+          gamma_eff = w(i, j, k, itransition1)
           call pushcontrol1b(1)
         end if
-! under-relaxation update
-        gamma_eff = gamma_eff + 0.01*(gamma_new-gamma_eff)
 ! if gamma_eff = 1, the original sst should come out
         call pushreal8(spk)
         spk = gamma_eff*spk
         if (gamma_eff .lt. 0.1) then
-          call pushcontrol1b(0)
           x3 = 0.1
+          call pushcontrol1b(0)
         else
           x3 = gamma_eff
           call pushcontrol1b(1)
@@ -274,18 +270,20 @@ contains
           x3d = min2d
         end if
         call popcontrol1b(branch)
-        if (branch .ne. 0) gamma_effd = gamma_effd + x3d
+        if (branch .eq. 0) then
+          gamma_effd = 0.0_8
+        else
+          gamma_effd = x3d
+        end if
         call popreal8(spk)
         gamma_effd = gamma_effd + spk*spkd
         spkd = gamma_eff*spkd
-        gamma_newd = 0.01*gamma_effd
-        gamma_effd = 0.99*gamma_effd
         call popcontrol1b(branch)
         if (branch .eq. 0) then
-          gamma_sepd = gamma_newd
+          gamma_sepd = gamma_effd
         else
           wd(i, j, k, itransition1) = wd(i, j, k, itransition1) + &
-&           gamma_newd
+&           gamma_effd
           gamma_sepd = 0.0_8
         end if
         min1d = f_theta_t*gamma_sepd
@@ -446,7 +444,7 @@ contains
     real(kind=realtype) :: xm, ym, zm, xp, yp, zp, xa, ya, za
     real(kind=realtype) :: re_w, u, f_wake, delta, r_t, re_s, f_theta_t
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
-    real(kind=realtype) :: vort, gamma_new
+    real(kind=realtype) :: vort
     intrinsic sqrt
     intrinsic mod
     intrinsic min
@@ -545,7 +543,6 @@ contains
           re_theta_c = w(i, j, k, itransition2) - (593.11+0.482*(w(i, j&
 &           , k, itransition2)-1870.0))
         end if
-! use under_relaxation factor for gamma_eff
         f_reattach = exp(-((r_t/20.0)**4))
         if (0.0 .lt. re_s/(3.235*re_theta_c) - 1.0) then
           max1 = re_s/(3.235*re_theta_c) - 1.0
@@ -560,12 +557,10 @@ contains
         end if
         gamma_sep = min1*f_theta_t
         if (w(i, j, k, itransition1) .lt. gamma_sep) then
-          gamma_new = gamma_sep
+          gamma_eff = gamma_sep
         else
-          gamma_new = w(i, j, k, itransition1)
+          gamma_eff = w(i, j, k, itransition1)
         end if
-! under-relaxation update
-        gamma_eff = gamma_eff + 0.01*(gamma_new-gamma_eff)
 ! if gamma_eff = 1, the original sst should come out
         spk = gamma_eff*spk
         if (gamma_eff .lt. 0.1) then

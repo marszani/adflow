@@ -1305,7 +1305,8 @@ class ADFLOW(AeroSolver):
                 )
 
         if self.adflow.killsignals.fatalfail:
-            fileName = f"failed_mesh_{self.curAP.name}_{self.curAP.adflowData.callCounter:03}.cgns"
+            numDigits = self.getOption("writeSolutionDigits")
+            fileName = f"failed_mesh_{self.curAP.name}_{self.curAP.adflowData.callCounter:0{numDigits}}.cgns"
             self.pp(f"Fatal failure during mesh warp! Bad mesh is written in output directory as {fileName}")
             self.writeMeshFile(os.path.join(self.getOption("outputDirectory"), fileName))
             self.curAP.fatalFail = True
@@ -2738,14 +2739,15 @@ class ADFLOW(AeroSolver):
 
         # If we are numbering solution, it saving the sequence of
         # calls, add the call number
+        numDigits = self.getOption("writeSolutionDigits")
         if number is not None:
             # We need number based on the provided number:
-            baseName = baseName + "_%3.3d" % number
+            baseName = baseName + f"_%.{numDigits}d" % number
         else:
             # if number is none, i.e. standalone, but we need to
             # number solutions, use internal counter
             if self.getOption("numberSolutions"):
-                baseName = baseName + "_%3.3d" % self.curAP.adflowData.callCounter
+                baseName = baseName + f"_%.{numDigits}d" % self.curAP.adflowData.callCounter
 
         # Join to get the actual filename root
         base = os.path.join(outputDir, baseName)
@@ -5532,16 +5534,18 @@ class ADFLOW(AeroSolver):
             "flowType": [str, ["external", "internal"]],
             "turbulenceModel": [
                 str,
-                ["SA", "SA-Edwards", "k-omega Wilcox", "k-omega modified", "k-tau", "Menter SST", "v2f"],
+                ["SA", "SA-Edwards", "k-omega Wilcox", "k-omega modified", "k-tau", "Menter SST", "Langtry Menter SST", "v2f"],
             ],
             "turbulenceOrder": [str, ["first order", "second order"]],
             "turbResScale": [(float, list, type(None)), None],
+            "smoothSSTphi": [(list), [1e3, 1e1, 1e15,1e3, 1e4]],
             "meshMaxSkewness": [float, 1.0],
             "useSkewnessCheck": [bool, False],
             "turbulenceProduction": [str, ["strain", "vorticity", "Kato-Launder"]],
             "useQCR": [bool, False],
             "useRotationSA": [bool, False],
             "useft2SA": [bool, True],
+            "use2003SST": [bool, True],
             "eddyVisInfRatio": [float, 0.009],
             "useWallFunctions": [bool, False],
             "useApproxWallDistance": [bool, True],
@@ -5658,7 +5662,7 @@ class ADFLOW(AeroSolver):
             # Approximate Newton-Krylov Parameters
             "useANKSolver": [bool, True],
             "ANKUseTurbDADI": [bool, True],
-            "ANKUseApproxSA": [bool, False],
+            "ANKUseApproxTurb": [bool, False],
             "ANKSwitchTol": [float, 1e3],
             "ANKSubspaceSize": [int, -1],
             "ANKMaxIter": [int, 40],
@@ -5706,6 +5710,7 @@ class ADFLOW(AeroSolver):
             "partitionLikeNProc": [int, -1],
             # Misc Parameters
             "numberSolutions": [bool, True],
+            "writeSolutionDigits": [int, 3],
             "printIterations": [bool, True],
             "printTiming": [bool, True],
             "printIntro": [bool, True],
@@ -5908,11 +5913,13 @@ class ADFLOW(AeroSolver):
                 "k-omega modified": self.adflow.constants.komegamodified,
                 "k-tau": self.adflow.constants.ktau,
                 "menter sst": self.adflow.constants.mentersst,
+                "langtry menter sst": self.adflow.constants.langtrymentersst,
                 "v2f": self.adflow.constants.v2f,
                 "location": ["physics", "turbmodel"],
             },
             "turbulenceorder": {"first order": 1, "second order": 2, "location": ["discr", "orderturb"]},
             "turbresscale": ["iter", "turbresscale"],
+            "smoothsstphi": ["iter", "smoothsstphi"],
             "meshmaxskewness": ["iter", "meshmaxskewness"],
             "useskewnesscheck": ["iter", "useskewnesscheck"],
             "turbulenceproduction": {
@@ -5924,6 +5931,7 @@ class ADFLOW(AeroSolver):
             "useqcr": ["physics", "useqcr"],
             "userotationsa": ["physics", "userotationsa"],
             "useft2sa": ["physics", "useft2sa"],
+            "use2003sst": ["physics", "use2003sst"],
             "eddyvisinfratio": ["physics", "eddyvisinfratio"],
             "usewallfunctions": ["physics", "wallfunctions"],
             "walldistcutoff": ["physics", "walldistcutoff"],
@@ -6058,7 +6066,7 @@ class ADFLOW(AeroSolver):
             # Approximate Newton-Krylov Parameters
             "useanksolver": ["ank", "useanksolver"],
             "ankuseturbdadi": ["ank", "ank_useturbdadi"],
-            "ankuseapproxsa": ["ank", "ank_useapproxsa"],
+            "ankuseapproxturb": ["ank", "ank_useapproxturb"],
             "ankswitchtol": ["ank", "ank_switchtol"],
             "anksubspacesize": ["ank", "ank_subspace"],
             "ankmaxiter": ["ank", "ank_maxiter"],
@@ -6199,6 +6207,7 @@ class ADFLOW(AeroSolver):
 
         pythonOptions = {
             "numbersolutions",
+            "writesolutiondigits",
             "writetecplotsurfacesolution",
             "coupledsolution",
             "partitiononly",
@@ -6384,6 +6393,8 @@ class ADFLOW(AeroSolver):
                 self.setOption("turbresscale", 10000.0)
             elif turbModel == "Menter SST":
                 self.setOption("turbresscale", [1e3, 1e-6])
+            elif turbModel == "Langtry Menter SST":
+                self.setOption("turbresscale", [1e3, 1e-6, 1, 1])
             else:
                 raise Error(
                     "Turbulence model %-35s does not have default values specified for turbresscale. Specify turbresscale manually or update the python interface"

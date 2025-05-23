@@ -52,8 +52,8 @@ contains
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
     real(kind=realtype) :: re_theta, f_reattachd, gamma_sepd, &
 &   gamma_effd
-    real(kind=realtype) :: vort, gamma_new
-    real(kind=realtype) :: vortd, gamma_newd
+    real(kind=realtype) :: vort
+    real(kind=realtype) :: vortd
     intrinsic sqrt
     intrinsic min
     intrinsic exp
@@ -86,14 +86,12 @@ contains
       rsstgam1 = 5.0_realtype/9.0_realtype
       rsstgam2 = 0.44_realtype
       pklim = 10.0
-      gamma_effd = 0.0_8
     else
       result1 = sqrt(rsstbetas)
       rsstgam1 = rsstbeta1/rsstbetas - rsstsigw1*rsstk*rsstk/result1
       result1 = sqrt(rsstbetas)
       rsstgam2 = rsstbeta2/rsstbetas - rsstsigw2*rsstk*rsstk/result1
       pklim = 20.0
-      gamma_effd = 0.0_8
     end if
 !       source terms.
 !       determine the source term and its derivative w.r.t. k and
@@ -253,7 +251,6 @@ contains
               re_theta_c = w(i, j, k, itransition2) - (593.11+0.482*(w(i&
 &               , j, k, itransition2)-1870.0))
             end if
-! use under_relaxation factor for gamma_eff
             arg1d = -(4*r_t**3*r_td/20.0**4)
             arg1 = -((r_t/20.0)**4)
             f_reattachd = exp(arg1)*arg1d
@@ -278,15 +275,12 @@ contains
             gamma_sepd = f_theta_t*min1d + min1*f_theta_td
             gamma_sep = min1*f_theta_t
             if (w(i, j, k, itransition1) .lt. gamma_sep) then
-              gamma_newd = gamma_sepd
-              gamma_new = gamma_sep
+              gamma_effd = gamma_sepd
+              gamma_eff = gamma_sep
             else
-              gamma_newd = wd(i, j, k, itransition1)
-              gamma_new = w(i, j, k, itransition1)
+              gamma_effd = wd(i, j, k, itransition1)
+              gamma_eff = w(i, j, k, itransition1)
             end if
-! under-relaxation update
-            gamma_effd = gamma_effd + 0.01*(gamma_newd-gamma_effd)
-            gamma_eff = gamma_eff + 0.01*(gamma_new-gamma_eff)
 ! if gamma_eff = 1, the original sst should come out
             spkd = spk*gamma_effd + gamma_eff*spkd
             spk = gamma_eff*spk
@@ -363,7 +357,7 @@ contains
     real(kind=realtype) :: xm, ym, zm, xp, yp, zp, xa, ya, za
     real(kind=realtype) :: re_w, u, f_wake, delta, r_t, re_s, f_theta_t
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
-    real(kind=realtype) :: vort, gamma_new
+    real(kind=realtype) :: vort
     intrinsic sqrt
     intrinsic min
     intrinsic exp
@@ -464,7 +458,6 @@ contains
               re_theta_c = w(i, j, k, itransition2) - (593.11+0.482*(w(i&
 &               , j, k, itransition2)-1870.0))
             end if
-! use under_relaxation factor for gamma_eff
             arg1 = -((r_t/20.0)**4)
             f_reattach = exp(arg1)
             if (0.0 .lt. re_s/(3.235*re_theta_c) - 1.0) then
@@ -480,12 +473,10 @@ contains
             end if
             gamma_sep = min1*f_theta_t
             if (w(i, j, k, itransition1) .lt. gamma_sep) then
-              gamma_new = gamma_sep
+              gamma_eff = gamma_sep
             else
-              gamma_new = w(i, j, k, itransition1)
+              gamma_eff = w(i, j, k, itransition1)
             end if
-! under-relaxation update
-            gamma_eff = gamma_eff + 0.01*(gamma_new-gamma_eff)
 ! if gamma_eff = 1, the original sst should come out
             spk = gamma_eff*spk
             if (gamma_eff .lt. 0.1) then

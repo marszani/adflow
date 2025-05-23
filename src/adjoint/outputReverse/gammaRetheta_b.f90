@@ -988,7 +988,6 @@ contains
 &       , j, k, itransition1))
       e_gamma = rlmca2*w(i, j, k, irho)*vort*w(i, j, k, itransition1)*&
 &       f_turb*(rlmce2*w(i, j, k, itransition1)-1.0)
-! somewhere here is the problem regarding partials not matching
       p_thetat = rlmcthetat*w(i, j, k, irho)/t*(re_thetat_eq-w(i, j, k, &
 &       itransition2))*(1.0-f_theta_t)
 ! print *, 'source terms: gamma, thetat', scratch(i, j, k, istransition1), scratch(i, j, k, istransition2)
@@ -1288,7 +1287,6 @@ contains
 &       , j, k, itransition1))
       e_gamma = rlmca2*w(i, j, k, irho)*vort*w(i, j, k, itransition1)*&
 &       f_turb*(rlmce2*w(i, j, k, itransition1)-1.0)
-! somewhere here is the problem regarding partials not matching
       p_thetat = rlmcthetat*w(i, j, k, irho)/t*(re_thetat_eq-w(i, j, k, &
 &       itransition2))*(1.0-f_theta_t)
       scratch(i, j, k, istransition1) = (p_gamma-e_gamma)*rhoi
