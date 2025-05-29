@@ -126,7 +126,7 @@ contains
         end do
 
         ! save result in output-variable
-        Re_thetat_eq = min(max(Re_thetat_eq_1, 20.0), 1.0e10)
+        Re_thetat_eq = min(max(Re_thetat_eq_1, 20.0), 1.0e10) ! clip for numerical robustness
 
         ! print *, 'thetat, lambda, Re_thetat_eq', thetat, lambda, Re_thetat_eq
 
@@ -175,13 +175,13 @@ contains
 
                         delta = 375.0 * vort * rlv(i, j, k) * w(i, j, k, iTransition2) *d2wall(i, j, k) / &
                                 (w(i, j, k, irho) * U2)
-                        F_theta_t = min(max(F_wake * exp (-(d2wall(i, j, k)/delta)**4), & ! todo: pull out of scratch
+                        F_theta_t = min(max(F_wake * exp (-(d2wall(i, j, k)/delta)**4), & 
                                 1.0 - ((rLMce2 * w(i, j, k, iTransition1) - 1.0)/(rLMce2-1))**2), 1.0)
 
                         T = 500.0 * rlv(i, j, k) / (w(i, j, k, irho) * U2)
 
                         
-                        R_t = w(i, j, k, irho) * w(i, j, k, itu1) / (rlv(i, j, k) * w(i, j, k, itu2)) ! todo: save this in scratch
+                        R_t = w(i, j, k, irho) * w(i, j, k, itu1) / (rlv(i, j, k) * w(i, j, k, itu2)) 
 
                         if (w(i, j, k, iTransition2) .le. 1870.0) then
                             Re_theta_c = - 3.96035 + (1.0120656) * w(i, j, k, iTransition2) + &
@@ -192,7 +192,7 @@ contains
                             Re_theta_c = w(i, j, k, iTransition2) - (593.11 + 0.482 * (w(i, j, k, iTransition2) - 1870.0))
                         end if  
                         
-                        Re_S = w(i, j, k, irho) * sqrt(scratch(i, j, k, iStrain)) * d2wall(i, j, k)**2 / rlv(i, j, k) !! todo: save this in scratch
+                        Re_S = w(i, j, k, irho) * sqrt(scratch(i, j, k, iStrain)) * d2wall(i, j, k)**2 / rlv(i, j, k) 
 
                         ! Compute F_length1 based on the given conditions
                         if (w(i, j, k, iTransition2) .lt. 400.0) then
@@ -231,7 +231,7 @@ contains
                         scratch(i, j, k, isTransition1) = (P_gamma - E_gamma) * rhoi
                         scratch(i, j, k, isTransition2) = P_thetat * rhoi
 
-                        ! print *, 'source terms: gamma, thetat', scratch(i, j, k, isTransition1), scratch(i, j, k, isTransition2)
+                        
 
 #ifdef TAPENADE_REVERSE
                     end do
@@ -343,42 +343,7 @@ contains
                             c2m * w(i, j, k - 1, iTransition2) - &
                             c20 * w(i, j, k, iTransition2) + &
                             c2p * w(i, j, k + 1, iTransition2)
-! #ifndef USE_TAPENADE
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
 
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-
-!                         ! Update the central jacobian. For nonboundary cells this
-!                         ! is simply c1 and c2. For boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! The boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-
-!                         if (k == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtk1(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtk1(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtk1(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtk1(i, j, itu2, itu2), zero)
-!                         else if (k == kl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtk2(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtk2(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtk2(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtk2(i, j, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
 #ifdef TAPENADE_REVERSE
                     end do
 #else
@@ -466,43 +431,7 @@ contains
                             c20 * w(i, j, k, iTransition2) + &
                             c2p * w(i, j + 1, k, iTransition2)
 
-! #ifndef USE_TAPENADE
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
 
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-
-!                         ! Update the central jacobian. For nonboundary cells this
-!                         ! is simply c1 and c2. For boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! The boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-
-!                         if (j == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtj1(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtj1(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtj1(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtj1(i, k, itu2, itu2), zero)
-!                         else if (j == jl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtj2(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtj2(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtj2(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtj2(i, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-
-! #endif
 #ifdef TAPENADE_REVERSE
                     end do
 #else
@@ -589,42 +518,7 @@ contains
                             c20 * w(i, j, k, iTransition2) + &
                             c2p * w(i + 1, j, k, iTransition2)
 
-! #ifndef USE_TAPENADE
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
 
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-
-!                         ! Update the central jacobian. For nonboundary cells this
-!                         ! is simply c1 and c2. For boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! The boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-
-!                         if (i == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmti1(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmti1(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmti1(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmti1(j, k, itu2, itu2), zero)
-!                         else if (i == il) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmti2(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmti2(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmti2(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmti2(j, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
 #ifdef TAPENADE_REVERSE
                     end do
 #else

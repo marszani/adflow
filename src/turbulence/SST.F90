@@ -157,14 +157,32 @@ contains
 
     subroutine SST_block_residuals_b
         use constants
+        use variableConstants
         use blockPointers, only: il, jl, kl
-        use inputPhysics, only: turbProd
+        use inputPhysics, only: turbProd, transitionModel
         use turbutils_b, only: turbAdvection_b, kwCDterm_b, prodSmag2_b, &
-                               prodWmag2_b, prodKatolaunder_b
+                               prodWmag2_b, prodKatolaunder_b, strainNorm2_b
         use turbUtils, only: prodSmag2, prodWmag2, prodKatoLaunder
         use sst_b, only: SSTSource_b, SSTViscous_b, SSTResScale_b, f1SST_b, qq
+        use GammaRethetaModel_b, only: GammaRethetaSource_b, GammaRethetaViscous_b, GammaRethetaResScale_b
 
         implicit none
+
+        ! Run the transition model
+        !select case (transitionModel) 
+        !case (gammaRetheta)
+        !    call strainNorm2_b(2, il, 2, jl, 2, kl, iStrain)
+        !    call prodWmag2_b(2, il, 2, jl, 2, kl, iVorticity)
+
+        !    call GammaRethetaSource_b
+        !    call turbAdvection_b(&
+        !        (/iTransition1,iTransition2/), &
+        !        (/isTransition1,isTransition2/), &
+        !        1 &! dummy argument
+        !    )
+        !    call GammaRethetaViscous_b
+        !    call GammaRethetaResScale_b
+        !end select
 
 
         ! We need to recompute the production term because it is saved in scratch(:,:,:,iprod). This is overwritten when computing
