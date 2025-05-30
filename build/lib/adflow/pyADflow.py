@@ -5547,6 +5547,7 @@ class ADFLOW(AeroSolver):
             "useft2SA": [bool, True],
             "use2003SST": [bool, True],
             "eddyVisInfRatio": [float, 0.009],
+            "turbIntensityInf": [float, 0.1],
             "useWallFunctions": [bool, False],
             "useApproxWallDistance": [bool, True],
             "eulerWallTreatment": [
@@ -5932,7 +5933,8 @@ class ADFLOW(AeroSolver):
             "userotationsa": ["physics", "userotationsa"],
             "useft2sa": ["physics", "useft2sa"],
             "use2003sst": ["physics", "use2003sst"],
-            "eddyvisinfratio": ["physics", "eddyvisinfratio"],
+            "eddyvisinfratio":  ["physics", "eddyvisinfratio"],
+            "turbintensityinf": ["physics", "turbintensityinf"],
             "usewallfunctions": ["physics", "wallfunctions"],
             "walldistcutoff": ["physics", "walldistcutoff"],
             "useapproxwalldistance": ["discr", "useapproxwalldistance"],
