@@ -155,7 +155,7 @@ contains
         call pushcontrol1b(1)
       end if
 ! compute f function
-      if (lambda .le. 1.0e-9) then
+      if (lambda .le. zero) then
         call pushreal8(f)
         f = 1.0 + (12.986*lambda+123.66*lambda**2+405.689*lambda**3)*exp&
 &         (-((tu/1.5)**1.5))
@@ -759,7 +759,7 @@ contains
         lambda = x1
       end if
 ! compute f function
-      if (lambda .le. 1.0e-9) then
+      if (lambda .le. zero) then
         f = 1.0 + (12.986*lambda+123.66*lambda**2+405.689*lambda**3)*exp&
 &         (-((tu/1.5)**1.5))
       else
@@ -915,7 +915,6 @@ contains
         call pushcontrol1b(1)
       end if
       t = 500.0*rlv(i, j, k)/(w(i, j, k, irho)*u2)
-! todo: save this in scratch
       r_t = w(i, j, k, irho)*w(i, j, k, itu1)/(rlv(i, j, k)*w(i, j, k, &
 &       itu2))
       if (w(i, j, k, itransition2) .le. 1870.0) then
@@ -929,7 +928,6 @@ contains
 &         , itransition2)-1870.0))
         call pushcontrol1b(1)
       end if
-!! todo: save this in scratch
       re_s = w(i, j, k, irho)*sqrt(scratch(i, j, k, istrain))*d2wall(i, &
 &       j, k)**2/rlv(i, j, k)
 ! compute f_length1 based on the given conditions
@@ -990,7 +988,6 @@ contains
 &       f_turb*(rlmce2*w(i, j, k, itransition1)-1.0)
       p_thetat = rlmcthetat*w(i, j, k, irho)/t*(re_thetat_eq-w(i, j, k, &
 &       itransition2))*(1.0-f_theta_t)
-! print *, 'source terms: gamma, thetat', scratch(i, j, k, istransition1), scratch(i, j, k, istransition2)
       p_thetatd = rhoi*scratchd(i, j, k, istransition2)
       rhoid = p_thetat*scratchd(i, j, k, istransition2)
       scratchd(i, j, k, istransition2) = 0.0_8
@@ -1228,7 +1225,6 @@ contains
         f_theta_t = x1
       end if
       t = 500.0*rlv(i, j, k)/(w(i, j, k, irho)*u2)
-! todo: save this in scratch
       r_t = w(i, j, k, irho)*w(i, j, k, itu1)/(rlv(i, j, k)*w(i, j, k, &
 &       itu2))
       if (w(i, j, k, itransition2) .le. 1870.0) then
@@ -1240,7 +1236,6 @@ contains
         re_theta_c = w(i, j, k, itransition2) - (593.11+0.482*(w(i, j, k&
 &         , itransition2)-1870.0))
       end if
-!! todo: save this in scratch
       re_s = w(i, j, k, irho)*sqrt(scratch(i, j, k, istrain))*d2wall(i, &
 &       j, k)**2/rlv(i, j, k)
 ! compute f_length1 based on the given conditions
@@ -1291,7 +1286,6 @@ contains
 &       itransition2))*(1.0-f_theta_t)
       scratch(i, j, k, istransition1) = (p_gamma-e_gamma)*rhoi
       scratch(i, j, k, istransition2) = p_thetat*rhoi
-! print *, 'source terms: gamma, thetat', scratch(i, j, k, istransition1), scratch(i, j, k, istransition2)
     end do
   end subroutine gammarethetasource
 
@@ -1380,39 +1374,6 @@ contains
       c20 = c2m + c2p
 ! update the residual for this cell and store the possible
 ! coefficients for the matrix in b1, b2, c1, c2, d1 and d2.
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (i == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmti1(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmti1(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmti1(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmti1(j, k, itu2, itu2), zero)
-!                         else if (i == il) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmti2(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmti2(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmti2(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmti2(j, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
       c10d = -(w(i, j, k, itransition1)*scratchd(i, j, k, istransition1)&
 &       )
       c20d = -(w(i, j, k, itransition2)*scratchd(i, j, k, istransition2)&
@@ -1561,39 +1522,6 @@ contains
       c20 = c2m + c2p
 ! update the residual for this cell and store the possible
 ! coefficients for the matrix in b1, b2, c1, c2, d1 and d2.
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (j == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtj1(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtj1(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtj1(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtj1(i, k, itu2, itu2), zero)
-!                         else if (j == jl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtj2(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtj2(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtj2(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtj2(i, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
       c10d = -(w(i, j, k, itransition1)*scratchd(i, j, k, istransition1)&
 &       )
       c20d = -(w(i, j, k, itransition2)*scratchd(i, j, k, istransition2)&
@@ -1742,39 +1670,6 @@ contains
       c20 = c2m + c2p
 ! update the residual for this cell and store the possible
 ! coefficients for the matrix in b1, b2, c1, c2, d1 and d2.
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (k == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtk1(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtk1(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtk1(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtk1(i, j, itu2, itu2), zero)
-!                         else if (k == kl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtk2(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtk2(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtk2(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtk2(i, j, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
       c10d = -(w(i, j, k, itransition1)*scratchd(i, j, k, istransition1)&
 &       )
       c20d = -(w(i, j, k, itransition2)*scratchd(i, j, k, istransition2)&
@@ -1954,39 +1849,6 @@ contains
       scratch(i, j, k, istransition2) = scratch(i, j, k, istransition2) &
 &       + c2m*w(i, j, k-1, itransition2) - c20*w(i, j, k, itransition2) &
 &       + c2p*w(i, j, k+1, itransition2)
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (k == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtk1(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtk1(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtk1(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtk1(i, j, itu2, itu2), zero)
-!                         else if (k == kl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtk2(i, j, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtk2(i, j, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtk2(i, j, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtk2(i, j, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
     end do
 !$ad ii-loop
 !
@@ -2045,39 +1907,6 @@ contains
       scratch(i, j, k, istransition2) = scratch(i, j, k, istransition2) &
 &       + c2m*w(i, j-1, k, itransition2) - c20*w(i, j, k, itransition2) &
 &       + c2p*w(i, j+1, k, itransition2)
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (j == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmtj1(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmtj1(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmtj1(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmtj1(i, k, itu2, itu2), zero)
-!                         else if (j == jl) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmtj2(i, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmtj2(i, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmtj2(i, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmtj2(i, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
     end do
 !$ad ii-loop
 !
@@ -2136,39 +1965,6 @@ contains
       scratch(i, j, k, istransition2) = scratch(i, j, k, istransition2) &
 &       + c2m*w(i-1, j, k, itransition2) - c20*w(i, j, k, itransition2) &
 &       + c2p*w(i+1, j, k, itransition2)
-! #ifndef 1
-!                         b1 = -c1m
-!                         c1 = c10
-!                         d1 = -c1p
-!                         b2 = -c2m
-!                         c2 = c20
-!                         d2 = -c2p
-!                         ! update the central jacobian. for nonboundary cells this
-!                         ! is simply c1 and c2. for boundary cells this is slightly
-!                         ! more complicated, because the boundary conditions are
-!                         ! treated implicitly and the off-diagonal terms b1, b2 and
-!                         ! d1, d2 must be taken into account.
-!                         ! the boundary conditions are only treated implicitly if
-!                         ! the diagonal dominance of the matrix is increased.
-!                         if (i == 2) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - b1 * max(bmti1(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - b1 * bmti1(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - b2 * bmti1(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - b2 * max(bmti1(j, k, itu2, itu2), zero)
-!                         else if (i == il) then
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1 &
-!                                                 - d1 * max(bmti2(j, k, itu1, itu1), zero)
-!                             qq(i, j, k, 1, 2) = qq(i, j, k, 1, 2) - d1 * bmti2(j, k, itu1, itu2)
-!                             qq(i, j, k, 2, 1) = qq(i, j, k, 2, 1) - d2 * bmti2(j, k, itu2, itu1)
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2 &
-!                                                 - d2 * max(bmti2(j, k, itu2, itu2), zero)
-!                         else
-!                             qq(i, j, k, 1, 1) = qq(i, j, k, 1, 1) + c1
-!                             qq(i, j, k, 2, 2) = qq(i, j, k, 2, 2) + c2
-!                         end if
-! #endif
     end do
   end subroutine gammarethetaviscous
 

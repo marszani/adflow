@@ -209,8 +209,8 @@ contains
       end select
       select case  (transitionmodel) 
       case (gammaretheta) 
-!tuinf = 500 * muinf / (rhoinf * uinf**2)
-        tuinf = turbintensityinf
+! remember!!! turbintensityinf is the ratio, tuinf is the percentage
+        tuinf = turbintensityinf*100
         winfd(itransition1) = 0.0_8
         winf(itransition1) = 1.0
         if (tuinf .gt. 1.3) then
@@ -377,8 +377,8 @@ contains
       end select
       select case  (transitionmodel) 
       case (gammaretheta) 
-!tuinf = 500 * muinf / (rhoinf * uinf**2)
-        tuinf = turbintensityinf
+! remember!!! turbintensityinf is the ratio, tuinf is the percentage
+        tuinf = turbintensityinf*100
         winf(itransition1) = 1.0
         if (tuinf .gt. 1.3) then
           winf(itransition2) = 331.50*(tuinf-0.5658)**(-0.671)

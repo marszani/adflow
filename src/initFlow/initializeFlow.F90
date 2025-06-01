@@ -172,8 +172,8 @@ contains
             select case (transitionModel)
             
             case (GammaRetheta)
-                !TuInf = 500 * muInf / (rhoInf * UInf**2)
-                TuInf = turbIntensityInf
+                
+                TuInf = turbIntensityInf * 100 ! Remember!!! turbIntensityInf is the ratio, TuInf is the percentage
 
                 wInf(iTransition1) = 1.0
 

@@ -86,7 +86,7 @@ contains
             lambda = max(min(lambda, 0.1), -0.1) ! clip for numerical robustness
 
             ! Compute F function
-            if (lambda .le. 1.0e-9) then
+            if (lambda .le. zero) then
                 F = 1.0 + (12.986 * lambda + 123.66 * lambda**2 + 405.689 * lambda**3) &
                     * exp(- (Tu / 1.5)**1.5)
             else
