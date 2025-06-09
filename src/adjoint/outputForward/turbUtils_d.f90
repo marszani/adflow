@@ -1815,7 +1815,7 @@ nadvloopspectral:do ii=1,nadv
       select case  (turbmodel) 
       case (spalartallmaras, spalartallmarasedwards) 
         call saeddyviscosity_d(ibeg, iend, jbeg, jend, kbeg, kend)
-      case (mentersst, langtrymentersst) 
+      case (mentersst) 
         call ssteddyviscosity_d(ibeg, iend, jbeg, jend, kbeg, kend)
       end select
     end if
@@ -1893,7 +1893,7 @@ nadvloopspectral:do ii=1,nadv
       select case  (turbmodel) 
       case (spalartallmaras, spalartallmarasedwards) 
         call saeddyviscosity(ibeg, iend, jbeg, jend, kbeg, kend)
-      case (mentersst, langtrymentersst) 
+      case (mentersst) 
         call ssteddyviscosity(ibeg, iend, jbeg, jend, kbeg, kend)
       end select
     end if

@@ -68,12 +68,10 @@ contains
     real(kind=realtype) :: x4d
     real(kind=realtype) :: min1
     real(kind=realtype) :: min1d
-    real(kind=realtype) :: max1
-    real(kind=realtype) :: max1d
     real(kind=realtype) :: min2
     real(kind=realtype) :: min2d
-    real(kind=realtype) :: max2
-    real(kind=realtype) :: max2d
+    real(kind=realtype) :: max1
+    real(kind=realtype) :: max1d
     real(kind=realtype) :: result1
     real(kind=realtype) :: result1d
     real(kind=realtype) :: arg1
@@ -259,14 +257,14 @@ contains
             f_reattach = exp(arg1)
             if (0.0 .lt. re_s/(3.235*re_theta_c) - 1.0) then
               temp3 = re_s/(3.235*re_theta_c)
-              max2d = (re_sd-temp3*3.235*re_theta)/(3.235*re_theta_c)
-              max2 = temp3 - 1.0
+              max1d = (re_sd-temp3*3.235*re_theta)/(3.235*re_theta_c)
+              max1 = temp3 - 1.0
             else
-              max2 = 0.0
-              max2d = 0.0_8
+              max1 = 0.0
+              max1d = 0.0_8
             end if
-            x2d = rlms1*(f_reattach*max2d+max2*f_reattachd)
-            x2 = rlms1*max2*f_reattach
+            x2d = rlms1*(f_reattach*max1d+max1*f_reattachd)
+            x2 = rlms1*max1*f_reattach
             if (x2 .gt. 2.0) then
               min1 = 2.0
               min1d = 0.0_8
@@ -277,16 +275,12 @@ contains
             gamma_sepd = f_theta_t*min1d + min1*f_theta_td
             gamma_sep = min1*f_theta_t
             if (w(i, j, k, itransition1) .lt. gamma_sep) then
-              max1d = gamma_sepd
-              max1 = gamma_sep
+              gamma_effd = gamma_sepd
+              gamma_eff = gamma_sep
             else
-              max1d = wd(i, j, k, itransition1)
-              max1 = w(i, j, k, itransition1)
+              gamma_effd = wd(i, j, k, itransition1)
+              gamma_eff = w(i, j, k, itransition1)
             end if
-            gamma_effd = wd(i, j, k, itransition1) + 0.01*(max1d-wd(i, j&
-&             , k, itransition1))
-            gamma_eff = w(i, j, k, itransition1) + 0.01*(max1-w(i, j, k&
-&             , itransition1))
 ! if gamma_eff = 1, the original sst should come out
             spkd = spk*gamma_effd + gamma_eff*spkd
             spk = gamma_eff*spk
@@ -373,9 +367,8 @@ contains
     real(kind=realtype) :: x3
     real(kind=realtype) :: x4
     real(kind=realtype) :: min1
-    real(kind=realtype) :: max1
     real(kind=realtype) :: min2
-    real(kind=realtype) :: max2
+    real(kind=realtype) :: max1
     real(kind=realtype) :: result1
     real(kind=realtype) :: arg1
 ! set model constants
@@ -468,11 +461,11 @@ contains
             arg1 = -((r_t/20.0)**4)
             f_reattach = exp(arg1)
             if (0.0 .lt. re_s/(3.235*re_theta_c) - 1.0) then
-              max2 = re_s/(3.235*re_theta_c) - 1.0
+              max1 = re_s/(3.235*re_theta_c) - 1.0
             else
-              max2 = 0.0
+              max1 = 0.0
             end if
-            x2 = rlms1*max2*f_reattach
+            x2 = rlms1*max1*f_reattach
             if (x2 .gt. 2.0) then
               min1 = 2.0
             else
@@ -480,12 +473,10 @@ contains
             end if
             gamma_sep = min1*f_theta_t
             if (w(i, j, k, itransition1) .lt. gamma_sep) then
-              max1 = gamma_sep
+              gamma_eff = gamma_sep
             else
-              max1 = w(i, j, k, itransition1)
+              gamma_eff = w(i, j, k, itransition1)
             end if
-            gamma_eff = w(i, j, k, itransition1) + 0.01*(max1-w(i, j, k&
-&             , itransition1))
 ! if gamma_eff = 1, the original sst should come out
             spk = gamma_eff*spk
             if (gamma_eff .lt. 0.1) then

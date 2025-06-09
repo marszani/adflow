@@ -78,7 +78,7 @@ contains
         Tu = max(Tu, 0.027) ! clip for numerical robustness
 
 
-        ! Now we need to solve for theta through Newton's method. The number of iterations is hard-coded so tapenade is 
+        ! Now we need to solve for theta through secant method. The number of iterations is hard-coded so tapenade is 
         ! able to differentiate it
         thetat = 0.01
         do n = 1, 10
