@@ -806,7 +806,7 @@ contains
         case (spalartAllmaras, spalartAllmarasEdwards)
             call saEddyViscosity(iBeg, iEnd, jBeg, jEnd, kBeg, kEnd)
 
-        case (menterSST)
+        case (menterSST, langtrymenterSST)
             call SSTEddyViscosity(iBeg, iEnd, jBeg, jEnd, kBeg, kEnd)
 #ifndef USE_TAPENADE
 

@@ -391,7 +391,8 @@ contains
                             F_reattach = exp(-(R_t/20.0)**4)
                             gamma_sep = min(rLMs1 * max(0.0, (Re_S / (3.235 * Re_theta_c)) - 1.0) * F_reattach, 2.0) * F_theta_t
 
-                            gamma_eff = max(w(i, j, k, iTransition1), gamma_sep)
+                            gamma_eff = w(i,j,k,iTransition1) + &
+                                         0.01 * (max(w(i,j,k,iTransition1), gamma_sep) - w(i,j,k,iTransition1))
 
                             ! if gamma_eff = 1, the original SST should come out
 

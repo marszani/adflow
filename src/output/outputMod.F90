@@ -3061,7 +3061,7 @@ contains
                 case (ktau)
                     call writeCGNSKtauInfo(cgnsInd, base)
 
-                case (menterSST)
+                case (menterSST, langtryMenterSST)
                     call writeCGNSMenterSSTInfo(cgnsInd, base)
 
                 case (v2f)
