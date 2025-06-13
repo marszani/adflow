@@ -39,7 +39,7 @@ contains
             select case (turbModel)
             case (spalartAllmaras)
                 call unsteadyTurbSpectral(itu1, itu1)
-            case (komegaWilcox, komegaModified, menterSST, ktau)
+            case (komegaWilcox, komegaModified, menterSST, langtryMenterSST, ktau)
                 call unsteadyTurbSpectral(itu1, itu2)
             case (v2f)
                 call unsteadyTurbSpectral(itu1, itu3)
@@ -69,7 +69,7 @@ contains
                     case (komegaWilcox, komegaModified)
                         call kw_block(.false.)
 
-                    case (menterSST)
+                    case (menterSST,langtryMenterSST)
                         call SST_block_residuals(.false.)
                         call SSTSolve
 

@@ -520,6 +520,20 @@ contains
                 nn = nn + 1
                 solNames(nn) = cgnsResOmega
 
+            case (langtryMenterSST)
+                nn = nn + 1
+                solNames(nn) = cgnsResK
+
+                nn = nn + 1
+                solNames(nn) = cgnsResOmega
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionGamma
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionReThetat
+
+
             case (ktau)
                 nn = nn + 1
                 solNames(nn) = cgnsResK
@@ -2444,6 +2458,19 @@ contains
                 nn = nn + 1
                 solNames(nn) = cgnsTurbOmega
 
+            case (langtryMenterSST)
+                nn = nn + 1
+                solNames(nn) = cgnsResK
+
+                nn = nn + 1
+                solNames(nn) = cgnsResOmega
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionGamma
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionReThetat
+
             case (ktau)
                 nn = nn + 1
                 solNames(nn) = cgnsTurbK
@@ -2599,6 +2626,19 @@ contains
 
                 nn = nn + 1
                 solNames(nn) = cgnsResOmega
+
+            case (langtryMenterSST)
+                nn = nn + 1
+                solNames(nn) = cgnsResK
+
+                nn = nn + 1
+                solNames(nn) = cgnsResOmega
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionGamma
+
+                nn = nn + 1
+                solNames(nn) = cgnsTransitionReThetat
 
             case (ktau)
                 nn = nn + 1
@@ -3061,7 +3101,7 @@ contains
                 case (ktau)
                     call writeCGNSKtauInfo(cgnsInd, base)
 
-                case (menterSST)
+                case (menterSST, langtryMenterSST)
                     call writeCGNSMenterSSTInfo(cgnsInd, base)
 
                 case (v2f)

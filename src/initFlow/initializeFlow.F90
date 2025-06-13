@@ -175,7 +175,8 @@ contains
                 
                 TuInf = turbIntensityInf * 100 ! Remember!!! turbIntensityInf is the ratio, TuInf is the percentage
 
-                wInf(iTransition1) = 1.0
+                wInf(iTransition1) = 1.0 ! gamma
+                ! wInf(iTransition3) = 1.0 ! gamma_eff 
 
                 if (TuInf .gt. 1.3) then
                     wInf(iTransition2)  = 331.50 *((TuInf - 0.5658)**(-0.671))

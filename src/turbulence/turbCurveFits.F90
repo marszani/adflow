@@ -144,7 +144,7 @@ contains
 
                 !=============================================================
 
-            case (komegaWilcox, komegaModified, menterSST)
+            case (komegaWilcox, komegaModified, menterSST, langtryMenterSST)
 
                 ! Use the near wall expressions for k and omega.
 

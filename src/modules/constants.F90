@@ -542,4 +542,5 @@ module variableConstants
 
     integer(kind=intType) :: iTransition1 = -1
     integer(kind=intType) :: iTransition2 = -1
+    !integer(kind=intType) :: iTransition3 = 1 !gamma_effective
 end module

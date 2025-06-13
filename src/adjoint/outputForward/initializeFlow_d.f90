@@ -211,8 +211,10 @@ contains
       case (gammaretheta) 
 ! remember!!! turbintensityinf is the ratio, tuinf is the percentage
         tuinf = turbintensityinf*100
+! gamma
         winfd(itransition1) = 0.0_8
         winf(itransition1) = 1.0
+! winf(itransition3) = 1.0 ! gamma_eff 
         if (tuinf .gt. 1.3) then
           winfd(itransition2) = 0.0_8
           winf(itransition2) = 331.50*(tuinf-0.5658)**(-0.671)
@@ -379,7 +381,9 @@ contains
       case (gammaretheta) 
 ! remember!!! turbintensityinf is the ratio, tuinf is the percentage
         tuinf = turbintensityinf*100
+! gamma
         winf(itransition1) = 1.0
+! winf(itransition3) = 1.0 ! gamma_eff 
         if (tuinf .gt. 1.3) then
           winf(itransition2) = 331.50*(tuinf-0.5658)**(-0.671)
         else

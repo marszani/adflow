@@ -1356,6 +1356,7 @@ contains
             ref(itu2) = ref(itu1) / nuRef
             ref(iTransition1) = 0
             ref(iTransition2) = 0
+            !ref(iTransition3) = 0
 
         case (ktau)
             ref(itu1) = pRef / rhoRef

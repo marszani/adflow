@@ -298,7 +298,8 @@ contains
 
         real(kind=realType) :: Re_w, U, F_wake, delta, R_t, Re_S, F_theta_t
         real(kind=realType) :: Re_theta_c, F_reattach, gamma_sep, gamma_eff
-        real(kind=realType) :: vort
+        real(kind=realType) :: vort, gamma_eff_new
+        real(kind=realType) :: residual, relaxation
 
         ! Set model constants
 
@@ -314,12 +315,16 @@ contains
             pklim = 20.0
         end if
 
+        
+
         !       Source terms.
         !       Determine the source term and its derivative w.r.t. k and
         !       omega for all internal cells of the block.
         !       Note that the blending function f1 and the cross diffusion
         !       were computed earlier in f1SST.
         !
+
+       !w(:, :, :, iTransition3) = 1.0
 
 #ifdef TAPENADE_REVERSE
         !$AD II-LOOP
@@ -392,9 +397,7 @@ contains
                             gamma_sep = min(rLMs1 * max(0.0, (Re_S / (3.235 * Re_theta_c)) - 1.0) * F_reattach, 2.0) * F_theta_t
 
                             gamma_eff = max(w(i, j, k, iTransition1), gamma_sep)
-
-                            ! if gamma_eff = 1, the original SST should come out
-
+                            
                             spk = gamma_eff * spk 
                             sdk = min(max(gamma_eff, 0.1), 1.0)*sdk
 
