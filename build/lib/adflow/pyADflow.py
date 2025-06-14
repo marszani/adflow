@@ -5547,7 +5547,7 @@ class ADFLOW(AeroSolver):
             "useft2SA": [bool, True],
             "use2003SST": [bool, True],
             "eddyVisInfRatio": [float, 0.009],
-            "turbIntensityInf": [float, 0.1],
+            "turbIntensityInf": [float, 0.001],
             "useWallFunctions": [bool, False],
             "useApproxWallDistance": [bool, True],
             "eulerWallTreatment": [
