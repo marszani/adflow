@@ -625,33 +625,37 @@ contains
     implicit none
     integer(kind=inttype) :: i, j, k
     real(kind=realtype) :: re_thetat_eq, u2, u, lambda_theta, delta, &
-&   f_theta_t, t, r_t, re_theta_c
-    real(kind=realtype) :: re_thetat_eqd, u2d, deltad, f_theta_td, td, &
-&   r_td, re_theta
-    real(kind=realtype) :: re_s, f_length1, f_length, f_onset1, f_onset&
-&   , f_turb, p_gamma, e_gamma, p_thetat
-    real(kind=realtype) :: re_sd, f_length1d, f_lengthd, f_onset1d, &
-&   f_onsetd, f_turbd, p_gammad, e_gammad, p_thetatd
-    real(kind=realtype) :: re_omega, f_wake, f_sublayer, f_onset2, &
-&   f_onset3
-    real(kind=realtype) :: re_omegad, f_waked, f_sublayerd, f_onset2d, &
-&   f_onset3d
-    real(kind=realtype) :: rhoi, vort
-    real(kind=realtype) :: rhoid, vortd
+&   f_theta_t, t
+    real(kind=realtype) :: re_thetat_eqd, u2d, deltad, f_theta_td, td
+    real(kind=realtype) :: r_t, re_theta_c, re_s, f_length1, f_length
+    real(kind=realtype) :: r_td, re_theta, re_sd, f_length1d, &
+&   f_lengthd
+    real(kind=realtype) :: f_onset1, f_onset1_softmax, f_onset2, &
+&   f_onset2_softmin
+    real(kind=realtype) :: f_onset1d, f_onset1_softmaxd, f_onset2d, &
+&   f_onset2_softmind
+    real(kind=realtype) :: f_onset3, f_onset, p_gamma, e_gamma, p_thetat
+    real(kind=realtype) :: f_onset3d, f_onsetd, p_gammad, e_gammad, &
+&   p_thetatd
+    real(kind=realtype) :: re_omega, f_wake, f_sublayer
+    real(kind=realtype) :: re_omegad, f_waked, f_sublayerd
+    real(kind=realtype) :: rhoi, vort, lambda, f_turb
+    real(kind=realtype) :: rhoid, vortd, f_turbd
     intrinsic sqrt
     intrinsic exp
     intrinsic max
     intrinsic min
+    intrinsic log
     real(kind=realtype) :: x1
     real(kind=realtype) :: x1d
     real(kind=realtype) :: x2
     real(kind=realtype) :: x2d
-    real(kind=realtype) :: x3
-    real(kind=realtype) :: x3d
     real(kind=realtype) :: arg1
     real(kind=realtype) :: arg1d
     real(kind=realtype) :: result1
     real(kind=realtype) :: result1d
+    real(kind=realtype) :: arg2
+    real(kind=realtype) :: arg2d
     real(kind=realtype) :: result2
     real(kind=realtype) :: result2d
     real(kind=realtype) :: temp
@@ -659,6 +663,8 @@ contains
     real(kind=realtype) :: temp1
     real(kind=realtype) :: temp2
     real(kind=realtype) :: temp3
+! smoothness parameter
+    lambda = 20.0_realtype
     do k=2,kl
       do j=2,jl
         do i=2,il
@@ -713,16 +719,16 @@ contains
           arg1d = -(4*temp2**3*(d2walld(i, j, k)-temp2*deltad)/delta)
           arg1 = -(temp2**4)
           temp2 = exp(arg1)
-          x3d = temp2*f_waked + f_wake*exp(arg1)*arg1d
-          x3 = f_wake*temp2
-          if (x3 .lt. 1.0 - ((rlmce2*w(i, j, k, itransition1)-1.0)/(&
+          x2d = temp2*f_waked + f_wake*exp(arg1)*arg1d
+          x2 = f_wake*temp2
+          if (x2 .lt. 1.0 - ((rlmce2*w(i, j, k, itransition1)-1.0)/(&
 &             rlmce2-1))**2) then
             temp2 = (rlmce2*w(i, j, k, itransition1)-1.0)/(rlmce2-1)
             x1d = -(2*temp2*rlmce2*wd(i, j, k, itransition1)/(rlmce2-1))
             x1 = 1.0 - temp2*temp2
           else
-            x1d = x3d
-            x1 = x3
+            x1d = x2d
+            x1 = x2
           end if
           if (x1 .gt. 1.0) then
             f_theta_t = 1.0
@@ -801,37 +807,40 @@ contains
           f_lengthd = (1-f_sublayer)*f_length1d - (f_length1-40*1.0)*&
 &           f_sublayerd
           f_length = f_length1*(1-f_sublayer) + 40*f_sublayer
+! compute first component
           temp3 = re_s/(2.193*re_theta_c)
           f_onset1d = (re_sd-temp3*2.193*re_theta)/(2.193*re_theta_c)
           f_onset1 = temp3
-          if (f_onset1 .lt. f_onset1**4) then
-            x2d = 4*f_onset1**3*f_onset1d
-            x2 = f_onset1**4
-          else
-            x2d = f_onset1d
-            x2 = f_onset1
-          end if
-          if (x2 .gt. 2.0) then
-            f_onset2 = 2.0
-            f_onset2d = 0.0_8
-          else
-            f_onset2d = x2d
-            f_onset2 = x2
-          end if
-          if (1.0 - (r_t/2.5)**3 .lt. zero) then
-            f_onset3 = zero
-            f_onset3d = 0.0_8
-          else
-            f_onset3d = -(3*r_t**2*r_td/2.5**3)
-            f_onset3 = 1.0 - (r_t/2.5)**3
-          end if
-          if (f_onset2 - f_onset3 .lt. zero) then
-            f_onset = zero
-            f_onsetd = 0.0_8
-          else
-            f_onsetd = f_onset2d - f_onset3d
-            f_onset = f_onset2 - f_onset3
-          end if
+! smooth max approximation: max(f_onset1, f_onset1**4)
+          arg1d = lambda*4*f_onset1**3*f_onset1d
+          arg1 = lambda*f_onset1**4
+          arg2d = exp(lambda*f_onset1)*lambda*f_onset1d + exp(arg1)*&
+&           arg1d
+          arg2 = exp(lambda*f_onset1) + exp(arg1)
+          f_onset1_softmaxd = arg2d/(lambda*arg2)
+          f_onset1_softmax = 1.0/lambda*log(arg2)
+! smooth min approximation: min(above, 2.0)
+          arg1d = -(exp(-(lambda*f_onset1_softmax))*lambda*&
+&           f_onset1_softmaxd)
+          arg1 = exp(-(lambda*f_onset1_softmax)) + exp(-(lambda*2.0))
+          f_onset2_softmind = -(arg1d/(lambda*arg1))
+          f_onset2_softmin = -(1.0/lambda*log(arg1))
+          f_onset2d = f_onset2_softmind
+          f_onset2 = f_onset2_softmin
+! smooth max approximation for damping: max(1 - (r_t/2.5)**3, 0)
+          arg1d = -(lambda*3*r_t**2*r_td/2.5**3)
+          arg1 = lambda*(1.0-(r_t/2.5)**3)
+          arg2d = exp(arg1)*arg1d
+          arg2 = 1.0 + exp(arg1)
+          f_onset3d = arg2d/(lambda*arg2)
+          f_onset3 = 1.0/lambda*log(arg2)
+! smooth max for final onset: max(f_onset2 - f_onset3, 0)
+          arg1d = lambda*(f_onset2d-f_onset3d)
+          arg1 = lambda*(f_onset2-f_onset3)
+          arg2d = exp(arg1)*arg1d
+          arg2 = 1.0 + exp(arg1)
+          f_onsetd = arg2d/(lambda*arg2)
+          f_onset = 1.0/lambda*log(arg2)
           temp3 = exp(-(r_t/4))
           f_turbd = -(temp3**3*exp(-(r_t/4))*r_td)
           f_turb = temp3**4
@@ -896,22 +905,26 @@ contains
     implicit none
     integer(kind=inttype) :: i, j, k
     real(kind=realtype) :: re_thetat_eq, u2, u, lambda_theta, delta, &
-&   f_theta_t, t, r_t, re_theta_c
-    real(kind=realtype) :: re_s, f_length1, f_length, f_onset1, f_onset&
-&   , f_turb, p_gamma, e_gamma, p_thetat
-    real(kind=realtype) :: re_omega, f_wake, f_sublayer, f_onset2, &
-&   f_onset3
-    real(kind=realtype) :: rhoi, vort
+&   f_theta_t, t
+    real(kind=realtype) :: r_t, re_theta_c, re_s, f_length1, f_length
+    real(kind=realtype) :: f_onset1, f_onset1_softmax, f_onset2, &
+&   f_onset2_softmin
+    real(kind=realtype) :: f_onset3, f_onset, p_gamma, e_gamma, p_thetat
+    real(kind=realtype) :: re_omega, f_wake, f_sublayer
+    real(kind=realtype) :: rhoi, vort, lambda, f_turb
     intrinsic sqrt
     intrinsic exp
     intrinsic max
     intrinsic min
+    intrinsic log
     real(kind=realtype) :: x1
     real(kind=realtype) :: x2
-    real(kind=realtype) :: x3
     real(kind=realtype) :: arg1
     real(kind=realtype) :: result1
+    real(kind=realtype) :: arg2
     real(kind=realtype) :: result2
+! smoothness parameter
+    lambda = 20.0_realtype
     do k=2,kl
       do j=2,jl
         do i=2,il
@@ -931,13 +944,13 @@ contains
           delta = 375.0*vort*rlv(i, j, k)*w(i, j, k, itransition2)*&
 &           d2wall(i, j, k)/(w(i, j, k, irho)*u2)
           arg1 = -((d2wall(i, j, k)/delta)**4)
-          x3 = f_wake*exp(arg1)
-          if (x3 .lt. 1.0 - ((rlmce2*w(i, j, k, itransition1)-1.0)/(&
+          x2 = f_wake*exp(arg1)
+          if (x2 .lt. 1.0 - ((rlmce2*w(i, j, k, itransition1)-1.0)/(&
 &             rlmce2-1))**2) then
             x1 = 1.0 - ((rlmce2*w(i, j, k, itransition1)-1.0)/(rlmce2-1)&
 &             )**2
           else
-            x1 = x3
+            x1 = x2
           end if
           if (x1 .gt. 1.0) then
             f_theta_t = 1.0
@@ -975,27 +988,24 @@ contains
             f_length1 = 0.3188
           end if
           f_length = f_length1*(1-f_sublayer) + 40*f_sublayer
+! compute first component
           f_onset1 = re_s/(2.193*re_theta_c)
-          if (f_onset1 .lt. f_onset1**4) then
-            x2 = f_onset1**4
-          else
-            x2 = f_onset1
-          end if
-          if (x2 .gt. 2.0) then
-            f_onset2 = 2.0
-          else
-            f_onset2 = x2
-          end if
-          if (1.0 - (r_t/2.5)**3 .lt. zero) then
-            f_onset3 = zero
-          else
-            f_onset3 = 1.0 - (r_t/2.5)**3
-          end if
-          if (f_onset2 - f_onset3 .lt. zero) then
-            f_onset = zero
-          else
-            f_onset = f_onset2 - f_onset3
-          end if
+! smooth max approximation: max(f_onset1, f_onset1**4)
+          arg1 = lambda*f_onset1**4
+          arg2 = exp(lambda*f_onset1) + exp(arg1)
+          f_onset1_softmax = 1.0/lambda*log(arg2)
+! smooth min approximation: min(above, 2.0)
+          arg1 = exp(-(lambda*f_onset1_softmax)) + exp(-(lambda*2.0))
+          f_onset2_softmin = -(1.0/lambda*log(arg1))
+          f_onset2 = f_onset2_softmin
+! smooth max approximation for damping: max(1 - (r_t/2.5)**3, 0)
+          arg1 = lambda*(1.0-(r_t/2.5)**3)
+          arg2 = 1.0 + exp(arg1)
+          f_onset3 = 1.0/lambda*log(arg2)
+! smooth max for final onset: max(f_onset2 - f_onset3, 0)
+          arg1 = lambda*(f_onset2-f_onset3)
+          arg2 = 1.0 + exp(arg1)
+          f_onset = 1.0/lambda*log(arg2)
           f_turb = exp(-(r_t/4))**4
 ! since we need to divide by rho, rho does not appear here anymore
           result1 = sqrt(scratch(i, j, k, istrain))

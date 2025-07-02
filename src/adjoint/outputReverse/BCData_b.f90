@@ -2108,6 +2108,7 @@ contains
         ref(itransition1) = 0
         call pushreal8(ref(itransition2))
         ref(itransition2) = 0
+!ref(itransition3) = 0
         call pushcontrol3b(3)
       case (ktau) 
         ref(itu1) = pref/rhoref
@@ -2283,6 +2284,7 @@ turbloop:do nn=nt1,nt2
         ref(itu2) = ref(itu1)/nuref
         ref(itransition1) = 0
         ref(itransition2) = 0
+!ref(itransition3) = 0
       case (ktau) 
         ref(itu1) = pref/rhoref
         ref(itu2) = nuref/ref(itu1)

@@ -138,14 +138,18 @@ contains
         use constants
         use variableConstants
         use paramTurb
-        implicit None
+        implicit none
 
         integer(kind=intType) :: i, j, k
-        real(kind=realType) :: Re_thetat_eq, U2, U, lambda_theta, delta, F_theta_t, T, R_t, Re_theta_c
-        real(kind=realType) :: Re_S, F_length1, F_length, F_onset1, F_onset, F_turb, P_gamma, E_gamma, P_thetat
-        real(kind=realType) :: Re_omega, F_wake, F_sublayer, F_onset2, F_onset3
-
-        real(kind=realType) :: rhoi, vort
+        real(kind=realType) :: Re_thetat_eq, U2, U, lambda_theta, delta, F_theta_t, T
+        real(kind=realType) :: R_t, Re_theta_c, Re_S, F_length1, F_length
+        real(kind=realType) :: F_onset1, F_onset1_softmax, F_onset2, F_onset2_softmin
+        real(kind=realType) :: F_onset3, F_onset, P_gamma, E_gamma, P_thetat
+        real(kind=realType) :: Re_omega, F_wake, F_sublayer
+        real(kind=realType) :: rhoi, vort, lambda, F_turb
+        
+        
+        lambda  = 20.0_realType  ! smoothness parameter
 
 
 #ifdef TAPENADE_REVERSE
@@ -210,13 +214,23 @@ contains
 
                         F_length = F_length1 * (1-F_sublayer) + 40 * F_sublayer 
 
-                        F_onset1 = (Re_S /(2.193 * Re_theta_c)) 
-                        F_onset2 = min((max(F_onset1, F_onset1**4)),2.0)
-                        F_onset3 = max((1.0 - (R_t / 2.5)**3), zero)
-                        F_onset = max((F_onset2 - F_onset3), zero)
+                        ! Compute first component
+                        F_onset1 = Re_S / (2.193 * Re_theta_c)
 
+                        ! Smooth max approximation: max(F_onset1, F_onset1**4)
+                        F_onset1_softmax = (1.0/lambda)*log(exp(lambda*F_onset1) + exp(lambda*F_onset1**4))
+
+                        ! Smooth min approximation: min(above, 2.0)
+                        F_onset2_softmin = -(1.0/lambda)*log(exp(-lambda*F_onset1_softmax) + exp(-lambda*2.0))
+
+                        F_onset2 = F_onset2_softmin
+
+                        ! Smooth max approximation for damping: max(1 - (R_t/2.5)**3, 0)
+                        F_onset3 = (1.0/lambda)*log(1.0 + exp(lambda*(1.0 - (R_t/2.5)**3)))
+
+                        ! Smooth max for final onset: max(F_onset2 - F_onset3, 0)
+                        F_onset = (1.0/lambda)*log(1.0 + exp(lambda*(F_onset2 - F_onset3)))
                         F_turb =  exp(-R_t/4)**4 
-
 
                         ! since we need to divide by rho, rho does not appear here anymore
                         P_gamma = F_length * rLMca1 * w(i, j, k, irho) * sqrt(scratch(i, j, k, iStrain)) * &

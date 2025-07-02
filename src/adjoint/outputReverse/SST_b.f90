@@ -52,8 +52,9 @@ contains
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
     real(kind=realtype) :: re_theta_cd, f_reattachd, gamma_sepd, &
 &   gamma_effd
-    real(kind=realtype) :: vort
+    real(kind=realtype) :: vort, gamma_eff_new
     real(kind=realtype) :: vortd
+    real(kind=realtype) :: residual, relaxation
     intrinsic sqrt
     intrinsic mod
     intrinsic min
@@ -202,7 +203,6 @@ contains
           gamma_eff = w(i, j, k, itransition1)
           call pushcontrol1b(1)
         end if
-! if gamma_eff = 1, the original sst should come out
         call pushreal8(spk)
         spk = gamma_eff*spk
         if (gamma_eff .lt. 0.1) then
@@ -444,7 +444,8 @@ contains
     real(kind=realtype) :: xm, ym, zm, xp, yp, zp, xa, ya, za
     real(kind=realtype) :: re_w, u, f_wake, delta, r_t, re_s, f_theta_t
     real(kind=realtype) :: re_theta_c, f_reattach, gamma_sep, gamma_eff
-    real(kind=realtype) :: vort
+    real(kind=realtype) :: vort, gamma_eff_new
+    real(kind=realtype) :: residual, relaxation
     intrinsic sqrt
     intrinsic mod
     intrinsic min
@@ -477,6 +478,7 @@ contains
 !       note that the blending function f1 and the cross diffusion
 !       were computed earlier in f1sst.
 !
+!w(:, :, :, itransition3) = 1.0
     do ii=0,nx*ny*nz-1
       i = mod(ii, nx) + 2
       j = mod(ii/nx, ny) + 2
@@ -561,7 +563,6 @@ contains
         else
           gamma_eff = w(i, j, k, itransition1)
         end if
-! if gamma_eff = 1, the original sst should come out
         spk = gamma_eff*spk
         if (gamma_eff .lt. 0.1) then
           x3 = 0.1

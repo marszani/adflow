@@ -133,7 +133,7 @@ contains
       call pushcontrol1b(1)
       tu = tu
     end if
-! now we need to solve for theta through newton's method. the number of iterations is hard-coded so tapenade is 
+! now we need to solve for theta through secant method. the number of iterations is hard-coded so tapenade is 
 ! able to differentiate it
     thetat = 0.01
     ad_count = 1
@@ -743,7 +743,7 @@ contains
     else
       tu = tu
     end if
-! now we need to solve for theta through newton's method. the number of iterations is hard-coded so tapenade is 
+! now we need to solve for theta through secant method. the number of iterations is hard-coded so tapenade is 
 ! able to differentiate it
     thetat = 0.01
     do n=1,10
